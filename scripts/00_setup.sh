@@ -53,11 +53,11 @@ echo "      Found: $(which conda)"
 echo "[3/3] Creating conda environments (~10-20 min)..."
 
 echo "  --> gw_qc..."
-conda env create -f "${REPO_DIR}/envs/qc.yml" --force
+conda env create -f "${REPO_DIR}/envs/qc.yml" --yes || conda env update -f "${REPO_DIR}/envs/qc.yml" --prune
 echo "      Done."
 
 echo "  --> gw_assembly..."
-conda env create -f "${REPO_DIR}/envs/assembly.yml" --force
+conda env create -f "${REPO_DIR}/envs/assembly.yml" --yes || conda env update -f "${REPO_DIR}/envs/assembly.yml" --prune
 echo "      Done."
 
 echo ""
