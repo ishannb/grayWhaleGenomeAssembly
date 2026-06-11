@@ -1,0 +1,12 @@
+name: gw_qc
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.10
+  - nanoplot=1.42.0
+  - nanostat=1.6.0
+  - samtools=1.19
+  - seqkit=2.7.0
+  - pip

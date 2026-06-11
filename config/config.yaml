@@ -1,0 +1,144 @@
+# =============================================================================
+# config.yaml — Cetacean De Novo Genome Assembly Pipeline
+# Edit ONLY this file to adapt the pipeline to a new sample.
+#
+# For each new whale, update:
+#   1. input.fastq_dirs / bam_dirs    — paths to this sample's data
+#   2. output.base_dir                — where outputs should go
+#   3. sample.name                    — used for labelling outputs
+#   4. sample.fastq_storage_gb        — disk size of all .fastq.gz files (GB)
+#                                       Run: du -sh /path/to/fastq_pass/
+#   5. genome.estimated_size_gb       — expected genome size (all cetaceans ~2.4)
+#   6. sequencing.*                   — flow cell, basecaller, calling mode
+#
+# Coverage and filtering parameters are estimated automatically.
+# You do NOT need to count gigabases — see scripts/calculate_params.py.
+# =============================================================================
+
+# ── Sample Identity ───────────────────────────────────────────────────────────
+sample:
+  name: "Grey_Whale_1"              # Used for output file labelling
+  species: "Eschrichtius_robustus"
+
+  # Storage size of all .fastq.gz files in gigabytes (GB).
+  # Get this with: du -sh /path/to/fastq_pass/
+  # Do NOT count .bam files — only .fastq.gz contributes to base counts.
+  fastq_storage_gb: 150
+
+  # Compression factor: how many gigabases per GB of .fastq.gz storage.
+  # ONT SUP data compresses to roughly 3.0-3.5x. Default 3.2 is a safe
+  # midpoint. If you have a seqkit stats result, you can compute the
+  # exact value and override here.
+  #   exact = (total_bases_from_seqkit / 1e9) / fastq_storage_gb
+  fastq_compression_factor: 3.2
+
+# ── Input Data ────────────────────────────────────────────────────────────────
+# List all run directories for this sample. Add or remove entries as needed.
+input:
+  fastq_dirs:
+    # Grey_Whale_1_LR — Run 1 (PBK95899)
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Grey_Whale_Seq_LR/Grey_Whale_1_LR/20260602_1325_2B_PBK95899_61c0d2c5/fastq_pass"
+    # Grey_Whale_1_LR — Run 2 (PAY42091)
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Grey_Whale_Seq_LR/Grey_Whale_1_LR/20260603_1420_3B_PAY42091_97df8277/fastq_pass"
+    # Grey_Whale_2_LR — Run 3 (PBK95362)
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Grey_Whale_Seq_LR/Grey_Whale_2_LR/20260602_1325_2D_PBK95362_4721b8ab/fastq_pass"
+    # Grey_Whale_2_LR — Run 4 (PAY41483)
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Grey_Whale_Seq_LR/Grey_Whale_2_LR/20260603_1420_3D_PAY41483_d4c102d6/fastq_pass"
+  bam_dirs:
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Grey_Whale_Seq_LR/Grey_Whale_1_LR/20260602_1325_2B_PBK95899_61c0d2c5/bam_pass"
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Grey_Whale_Seq_LR/Grey_Whale_1_LR/20260603_1420_3B_PAY42091_97df8277/bam_pass"
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Grey_Whale_Seq_LR/Grey_Whale_2_LR/20260602_1325_2D_PBK95362_4721b8ab/bam_pass"
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Grey_Whale_Seq_LR/Grey_Whale_2_LR/20260603_1420_3D_PAY41483_d4c102d6/bam_pass"
+
+# ── Output ────────────────────────────────────────────────────────────────────
+output:
+  base_dir: "/scratch/groups/euan/gray_whale_assembly"
+
+# ── Genome Parameters ─────────────────────────────────────────────────────────
+genome:
+  estimated_size: "2.4g"       # Used by Flye (string format: "2.4g")
+  estimated_size_gb: 2.4       # Used by calculate_params.py (float)
+  species: "Eschrichtius_robustus"
+
+# ── Sequencing Metadata ───────────────────────────────────────────────────────
+sequencing:
+  flow_cell: "R10.4.1"         # R10.4.1 or R9.4.1
+  basecaller: "MinKNOW"        # MinKNOW or Dorado
+  calling_mode: "SUP"          # SUP (super accuracy) or HAC (high accuracy)
+
+# ── Read Filtering ────────────────────────────────────────────────────────────
+# These values are computed automatically by scripts/calculate_params.py
+# based on sample.total_data_gb and genome.estimated_size_gb.
+# You can override them manually here if needed — set override: true
+# and fill in the values you want.
+filtlong:
+  override: false              # Set true to use manual values below
+  # --- manual overrides (only used if override: true) ---
+  min_length: 1000
+  keep_percent: 100
+  target_bases: "" 
+
+# ── Assembly (Flye) ───────────────────────────────────────────────────────────
+flye:
+  # nano-hq = R10.4.1 / Q20+ data. Use nano-raw for R9.4.1.
+  read_type: "nano-hq"
+  iterations: 1             # Internal Flye polishing rounds (1 is standard)
+  extra_flags: "--keep-haplotypes"  # Retains haplotype info for purge_dups
+
+# ── Polishing (Medaka) ────────────────────────────────────────────────────────
+medaka:
+  # R10.4.1 + SUP + MinKNOW -> r1041_e82_400bps_sup_v5.0.0
+  # Run `medaka tools list_models` to verify this is available in your install
+  model: "r1041_e82_400bps_sup_v5.0.0"
+  rounds: 1
+
+# ── Haplotig Purging (purge_dups) ─────────────────────────────────────────────
+purge_dups:
+  # Coverage cutoffs - set to "auto" to let purge_dups estimate from data,
+  # or set manually after inspecting the coverage histogram from Step 3
+  low_cutoff: "auto"
+  mid_cutoff: "auto"
+  high_cutoff: "auto"
+
+# ── Assembly Assessment ───────────────────────────────────────────────────────
+busco:
+  # cetartiodactyla_odb10 is the correct lineage for baleen whales
+  lineage: "cetartiodactyla_odb10"
+  mode: "genome"
+
+# ── SLURM ─────────────────────────────────────────────────────────────────────
+slurm:
+  partition: "euan"
+  account: "euan"
+  email: "ishannb@stanford.edu"
+
+  # Per-step resource requests (tune if jobs fail with OOM or timeout)
+  resources:
+    qc:
+      cpus: 8
+      mem: "32G"
+      time: "4:00:00"
+    filter:
+      cpus: 8
+      mem: "32G"
+      time: "8:00:00"
+    merge:
+      cpus: 8
+      mem: "32G"
+      time: "4:00:00"
+    assembly:
+      cpus: 64
+      mem: "500G"
+      time: "72:00:00"
+    polish:
+      cpus: 32
+      mem: "128G"
+      time: "24:00:00"
+    purge:
+      cpus: 16
+      mem: "64G"
+      time: "12:00:00"
+    assess:
+      cpus: 16
+      mem: "64G"
+      time: "12:00:00"

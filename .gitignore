@@ -1,0 +1,23 @@
+# Logs
+logs/
+
+# Large output files — pipeline outputs stay on Sherlock, not in git
+*.fastq
+*.fastq.gz
+*.bam
+*.bai
+*.fasta
+*.fa
+*.gfa
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Conda
+.conda/
+envs/.snakemake/
+
+# OS
+.DS_Store
