@@ -5,8 +5,10 @@ channels:
   - defaults
 dependencies:
   - python=3.10
-  - nanoplot=1.42.0
-  - nanostat=1.6.0
-  - samtools=1.19
-  - seqkit=2.7.0
+  - nanoplot>=1.42.0        # De Coster & Rademakers 2023; latest is 1.42+
+  - nanostat>=1.6.0
+  - samtools>=1.19          # Danecek et al. 2021
+  - seqkit>=2.7.0           # Shen et al. 2016
+  - pigz                    # parallel gzip, no strict version needed
   - pip
+ 
