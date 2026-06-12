@@ -1,26 +1,20 @@
-
 name: gw_assembly
 channels:
   - conda-forge
   - bioconda
-  - nanoporetech           # official ONT channel — use for medaka
   - defaults
 dependencies:
   - python=3.10
-  - flye>=2.9.4             # Kolmogorov et al. 2019; latest bioconda is 2.9.6
+  - flye>=2.9.4             # Kolmogorov et al. 2019
   - minimap2>=2.26          # Li 2018; needed by medaka and purge_dups
   - samtools>=1.19
   - seqkit>=2.7.0
   - filtlong>=0.2.1         # Wick 2021
   - purge_dups>=1.2.6       # Guan et al. 2020
-  - busco>=5.7.1            # Simao et al. 2015; uses cetartiodactyla_odb10
+  - busco>=5.7.1            # Simao et al. 2015
   - quast>=5.2.0            # Gurevich et al. 2013
   - pigz
   - pyyaml
-  - pip
-  - pip:
-    # Medaka: ONT recommends installing via their own channel or pip, NOT
-    # bioconda (bioconda builds are unsupported by ONT as of v2.x).
-    # The nanoporetech conda channel is preferred; pip is the fallback.
-    - medaka>=2.2.0         # ONT 2024; use r1041_e82_400bps_sup_v5.0.0 model
+  # Medaka installed separately via install_medaka.sh after env creation
+  # because v2.2.x requires torch~=2.9 which is not yet on conda-forge
  
