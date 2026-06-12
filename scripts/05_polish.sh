@@ -12,7 +12,7 @@
 # Submit: sbatch scripts/05_polish.sh
 # Manual: bash scripts/05_polish.sh
 #
-# Cite: Oxford Nanopore Technologies (2024) Medaka v2.0,
+# Cite: Oxford Nanopore Technologies (2023) Medaka v1.11,
 #       github.com/nanoporetech/medaka
 # =============================================================================
 #SBATCH --job-name=gw_05_polish
@@ -45,7 +45,7 @@ echo "  Rounds:  ${MEDAKA_ROUNDS}"
 echo "  Threads: ${THREADS}"
 echo "=============================================="
 
-conda activate gw_assembly
+conda activate gw_medaka
 mkdir -p "${OUT_DIR}"
 
 # ── Guard ──────────────────────────────────────────────────────────────────────
