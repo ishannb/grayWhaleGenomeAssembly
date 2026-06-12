@@ -57,6 +57,13 @@ module load anaconda
 bash scripts/00_setup.sh
 ```
 
+
+### 2b. Load and install medaka once
+
+```bash
+bash bash scripts/install_medaka.sh
+```
+
 ### 3. Submit all jobs
 
 ```bash
