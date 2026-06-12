@@ -60,8 +60,13 @@ echo "  --> gw_assembly..."
 conda env create -f "${REPO_DIR}/envs/assembly.yml" --yes || conda env update -f "${REPO_DIR}/envs/assembly.yml" --prune
 echo "      Done."
 
+echo "  --> Installing Medaka separately..."
+bash "${REPO_DIR}/scripts/install_medaka.sh"
+echo "      Done."
+
 echo ""
 echo "=============================================="
 echo "  Setup complete! Now run:"
+echo "    bash scripts/preflight.sh"
 echo "    bash scripts/run_pipeline.sh"
 echo "=============================================="
