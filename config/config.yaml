@@ -87,9 +87,9 @@ flye:
 
 # ── Polishing (Medaka) ────────────────────────────────────────────────────────
 medaka:
-  # R10.4.1 + SUP + MinKNOW -> r1041_e82_400bps_sup_v5.0.0
+  # R10.4.1 + SUP + MinKNOW -> r1041_e82_400bps_sup_v4.3.0
   # Run `medaka tools list_models` to verify this is available in your install
-  model: "r1041_e82_400bps_sup_v5.0.0"
+  model: "r1041_e82_400bps_sup_v4.3.0"
   rounds: 1
 
 # ── Haplotig Purging (purge_dups) ─────────────────────────────────────────────
