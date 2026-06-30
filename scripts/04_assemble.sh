@@ -22,7 +22,7 @@
 #SBATCH --account=euan
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=400G
-#SBATCH --time=72:00:00
+#SBATCH --time=24:00:00
 #SBATCH --mail-type=BEGIN,FAIL,END
 #SBATCH --mail-user=ishannb@stanford.edu
 set -euo pipefail
