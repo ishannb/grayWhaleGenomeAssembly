@@ -29,6 +29,7 @@
 #SBATCH --time=8:00:00
 #SBATCH --mail-type=FAIL,END
 #SBATCH --mail-user=ishannb@stanford.edu
+#SBATCH --chdir=/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
