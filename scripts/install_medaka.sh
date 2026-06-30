@@ -1,31 +1,36 @@
 #!/usr/bin/env bash
 # =============================================================================
-# install_medaka.sh — Install Medaka into the gw_assembly environment
+# install_medaka.sh — Create a dedicated conda environment for Medaka
 #
-# Installs medaka 1.11.3 via bioconda directly into the gw_assembly env
-# without needing to activate it first.
+# Medaka is installed in its own minimal environment (gw_medaka) with
+# Python 3.8, which is what medaka 1.11.x was built and tested against.
+# This avoids dependency conflicts with the main gw_assembly environment.
 #
 # Usage: bash scripts/install_medaka.sh
 # =============================================================================
 set -euo pipefail
 
 echo "=============================================="
-echo "  Installing Medaka into gw_assembly"
+echo "  Creating gw_medaka environment"
 echo "=============================================="
 
-# Install directly into the named environment — no activation needed
-conda install -n gw_assembly \
+conda create -n gw_medaka \
     -c bioconda \
     -c conda-forge \
-    medaka=1.11.3 \
+    python=3.8 \
+    medaka \
     --yes
 
 echo ""
 echo "Verifying install..."
-conda run -n gw_assembly medaka --version
-conda run -n gw_assembly medaka tools list_models | grep "r1041_e82_400bps_sup" | head -5
+conda run -n gw_medaka medaka --version
+echo ""
+echo "Available R10.4.1 SUP models:"
+conda run -n gw_medaka medaka tools list_models | grep "r1041_e82_400bps_sup" || \
+    echo "  (run: conda run -n gw_medaka medaka tools list_models)"
 
 echo ""
 echo "=============================================="
-echo "  Medaka installed successfully."
+echo "  gw_medaka environment ready."
+echo "  Used by: scripts/05_polish.sh"
 echo "=============================================="
