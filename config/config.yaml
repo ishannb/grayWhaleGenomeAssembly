@@ -30,7 +30,7 @@ sample:
   # midpoint. If you have a seqkit stats result, you can compute the
   # exact value and override here.
   #   exact = (total_bases_from_seqkit / 1e9) / fastq_storage_gb
-  fastq_compression_factor: 3.2
+  fastq_compression_factor: 1.14
 
 # ── Input Data ────────────────────────────────────────────────────────────────
 # List all run directories for this sample. Add or remove entries as needed.
