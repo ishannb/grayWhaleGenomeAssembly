@@ -26,7 +26,7 @@
 #SBATCH --chdir=/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_DIR="/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly"
 CONFIG="${REPO_DIR}/config/config.yaml"
 
 eval $(python3 "${REPO_DIR}/scripts/parse_config.py" "${CONFIG}")
@@ -43,6 +43,7 @@ echo "  Input:   ${ASSEMBLY}"
 echo "  Output:  ${OUT_DIR}"
 echo "=============================================="
 
+source /home/users/ishannb/miniconda3/etc/profile.d/conda.sh
 conda activate gw_assembly
 mkdir -p "${OUT_DIR}"
 cd "${OUT_DIR}"
@@ -70,7 +71,7 @@ samtools index aligned.bam
 
 # ── Step 2: Compute coverage ───────────────────────────────────────────────────
 echo "[2/5] Computing per-base coverage..."
-pb_stat -b aligned.bam -o PB.stat
+pbcstat -b aligned.bam -o PB.stat
 
 # ── Step 3: Estimate cutoffs ───────────────────────────────────────────────────
 echo "[3/5] Estimating coverage cutoffs..."
