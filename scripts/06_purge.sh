@@ -62,16 +62,15 @@ fi
 
 # ── Step 1: Align reads to assembly ───────────────────────────────────────────
 echo "[1/5] Aligning reads to polished assembly..."
-minimap2 -ax map-ont \
+minimap2 -x map-ont \
     -t "${THREADS}" \
     "${ASSEMBLY}" \
     "${READS}" \
-    | samtools sort -@ "${THREADS}" -o aligned.bam
-samtools index aligned.bam
+    > aligned.paf
 
 # ── Step 2: Compute coverage ───────────────────────────────────────────────────
 echo "[2/5] Computing per-base coverage..."
-pbcstat -b aligned.bam -o PB.stat
+pbcstat aligned.paf
 
 # ── Step 3: Estimate cutoffs ───────────────────────────────────────────────────
 echo "[3/5] Estimating coverage cutoffs..."
