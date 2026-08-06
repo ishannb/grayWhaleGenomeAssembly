@@ -21,8 +21,8 @@
 #SBATCH --chdir=/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CONFIG="${REPO_DIR}/config/config.yaml"
+REPO_DIR="/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly"
+CONFIG="${CONFIG:-${REPO_DIR}/config/config.yaml}"
 
 eval $(python3 "${REPO_DIR}/scripts/parse_config.py" "${CONFIG}")
 THREADS=${SLURM_CPUS_PER_TASK:-8}
@@ -34,6 +34,7 @@ echo "  Step 2: Merge reads from both run dirs"
 echo "  Output: ${MERGED}"
 echo "=============================================="
 
+source /home/users/ishannb/miniconda3/etc/profile.d/conda.sh
 conda activate gw_qc
 mkdir -p "${OUT_DIR}"
 
@@ -62,7 +63,7 @@ echo "Total files to merge: ${#FASTQ_FILES[@]}"
 echo "Merging (streaming, no decompression)..."
 
 # cat preserves gzip format when all inputs are .gz
-cat "${FASTQ_FILES[@]}" > "${MERGED}"
+printf "%s\0" "${FASTQ_FILES[@]}" | xargs -0 cat > "${MERGED}"
 
 # ── Verify and summarise ───────────────────────────────────────────────────────
 echo "Merge complete. Running seqkit stats..."

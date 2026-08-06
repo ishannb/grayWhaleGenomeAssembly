@@ -40,13 +40,21 @@ mkdir -p "${LOGS}"
 # ── Parse arguments ────────────────────────────────────────────────────────────
 FROM_STEP=1
 DRY_RUN=false
+CONFIG_ARG=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --from)    FROM_STEP="$2"; shift 2 ;;
+        --config)  CONFIG_ARG="$2"; shift 2 ;;
         --dry-run) DRY_RUN=true; shift ;;
         *) echo "Unknown argument: $1"; exit 1 ;;
     esac
 done
+
+# Resolve config to absolute path and export so all step scripts inherit it
+if [[ -n "${CONFIG_ARG}" ]]; then
+    export CONFIG="$(cd "$(dirname "${CONFIG_ARG}")" && pwd)/$(basename "${CONFIG_ARG}")"
+    echo "Using config: ${CONFIG}"
+fi
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 LOG="${LOGS}/pipeline_run_${TIMESTAMP}.log"
@@ -73,7 +81,7 @@ submit_job() {
     local DEPENDS="${2:-}"
     local SCRIPT_PATH="${SCRIPTS}/${SCRIPT}"
 
-    local CMD="sbatch --parsable"
+    local CMD="sbatch --parsable --export=ALL,CONFIG=${CONFIG:-}"
     if [[ -n "${DEPENDS}" ]]; then
         CMD="${CMD} --dependency=afterok:${DEPENDS}"
     fi

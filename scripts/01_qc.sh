@@ -23,8 +23,8 @@
 #SBATCH --chdir=/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CONFIG="${REPO_DIR}/config/config.yaml"
+REPO_DIR="/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly"
+CONFIG="${CONFIG:-${REPO_DIR}/config/config.yaml}"
 
 # ── Parse config ───────────────────────────────────────────────────────────────
 eval $(python3 "${REPO_DIR}/scripts/parse_config.py" "${CONFIG}")
@@ -37,6 +37,7 @@ echo "  FASTQ dirs: ${INPUT_FASTQ_DIRS}"
 echo "  Output:     ${OUT_DIR}"
 echo "=============================================="
 
+source /home/users/ishannb/miniconda3/etc/profile.d/conda.sh
 conda activate gw_qc
 mkdir -p "${OUT_DIR}"
 
@@ -56,7 +57,7 @@ for DIR in ${INPUT_FASTQ_DIRS}; do
     fi
     while IFS= read -r -d '' f; do
         FASTQ_FILES+=("$f")
-    done < <(find "${DIR}" -name "*.fastq.gz" -o -name "*.fastq" -print0 2>/dev/null)
+    done < <(find "${DIR}" \( -name "*.fastq.gz" -o -name "*.fastq" \) -print0 2>/dev/null)
 done
 
 if [[ ${#FASTQ_FILES[@]} -eq 0 ]]; then
@@ -66,8 +67,20 @@ fi
 echo "Found ${#FASTQ_FILES[@]} FASTQ file(s) across both runs."
 
 # ── Run NanoPlot ───────────────────────────────────────────────────────────────
+# With very large file counts (thousands of FASTQs), passing every file to
+# NanoPlot exceeds the shell argument limit. NanoPlot only needs a
+# representative sample to characterise read quality, so we cap the number
+# of files passed. 500 files is more than enough for stable statistics.
+MAX_QC_FILES=500
+if [[ ${#FASTQ_FILES[@]} -gt ${MAX_QC_FILES} ]]; then
+    echo "Large file count (${#FASTQ_FILES[@]}); sampling ${MAX_QC_FILES} for QC."
+    QC_FILES=( "${FASTQ_FILES[@]:0:${MAX_QC_FILES}}" )
+else
+    QC_FILES=( "${FASTQ_FILES[@]}" )
+fi
+
 NanoPlot \
-    --fastq "${FASTQ_FILES[@]}" \
+    --fastq "${QC_FILES[@]}" \
     --outdir "${OUT_DIR}" \
     --threads "${THREADS}" \
     --plots dot \
