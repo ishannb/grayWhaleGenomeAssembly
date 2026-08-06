@@ -1,0 +1,115 @@
+# =============================================================================
+# blue_whale.yaml — Blue Whale (Balaenoptera musculus) Assembly Config
+# =============================================================================
+# Coverage is set from EXACT base counts (from sequencing_summary.txt),
+# not estimated from storage size. total_bases_gb is authoritative here.
+# =============================================================================
+
+# ── Sample Identity ───────────────────────────────────────────────────────────
+sample:
+  name: "Blue_Whale"
+  species: "Balaenoptera_musculus"
+
+  # Exact total bases from sequencing_summary.txt (both libraries summed):
+  #   lib_1 (PBM05572): 96.8 Gb, 32,456,119 reads
+  #   lib_2 (PBK93830): 92.7 Gb, 30,968,955 reads
+  #   total:            189.5 Gb, 63,425,074 reads
+  # When total_bases_gb is set, it OVERRIDES the storage-size estimate.
+  total_bases_gb: 189.5
+
+  # Storage-based fields kept for reference but NOT used when total_bases_gb set
+  fastq_storage_gb: 0
+  fastq_compression_factor: 1.14
+
+# ── Input Data ────────────────────────────────────────────────────────────────
+input:
+  fastq_dirs:
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Blue_Whale_Seq_LR/Blue_whale_lib_1/basecalling/pass"
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Blue_Whale_Seq_LR/Blue_whaleLib_2/basecalling/pass"
+  bam_dirs:
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Blue_Whale_Seq_LR/Blue_whale_lib_1/basecalling/pass"
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Blue_Whale_Seq_LR/Blue_whaleLib_2/basecalling/pass"
+
+# ── Output ────────────────────────────────────────────────────────────────────
+output:
+  base_dir: "/scratch/groups/euan/blue_whale_assembly"
+
+# ── Genome Parameters ─────────────────────────────────────────────────────────
+genome:
+  estimated_size: "2.4g"
+  estimated_size_gb: 2.4
+  species: "Balaenoptera_musculus"
+
+# ── Sequencing Metadata ───────────────────────────────────────────────────────
+sequencing:
+  flow_cell: "R10.4.1"
+  basecaller: "Dorado"
+  calling_mode: "SUP"
+  basecall_model: "dna_r10.4.1_e8.2_400bps_sup@v5.2.0"
+
+# ── Read Filtering ────────────────────────────────────────────────────────────
+# ~79x raw coverage → subsample to 60x. Computed by calculate_params.py.
+filtlong:
+  override: false
+  min_length: 5000
+  keep_percent: 100
+  target_bases: ""
+
+# ── Assembly (Flye) ───────────────────────────────────────────────────────────
+flye:
+  read_type: "nano-hq"
+  iterations: 1
+  extra_flags: "--keep-haplotypes"
+
+# ── Polishing (Medaka) ────────────────────────────────────────────────────────
+# Basecalled with v5.2.0, but newest available Medaka model is v4.3.0.
+# v4.3.0 is forward-compatible and the correct choice.
+medaka:
+  model: "r1041_e82_400bps_sup_v4.3.0"
+  rounds: 1
+
+# ── Haplotig Purging ──────────────────────────────────────────────────────────
+purge_dups:
+  low_cutoff: "auto"
+  mid_cutoff: "auto"
+  high_cutoff: "auto"
+
+# ── Assessment ────────────────────────────────────────────────────────────────
+busco:
+  lineage: "cetartiodactyla_odb10"
+  mode: "genome"
+
+# ── SLURM ─────────────────────────────────────────────────────────────────────
+slurm:
+  partition: "euan"
+  account: "euan"
+  email: "ishannb@stanford.edu"
+  resources:
+    qc:
+      cpus: 8
+      mem: "32G"
+      time: "4:00:00"
+    filter:
+      cpus: 8
+      mem: "32G"
+      time: "8:00:00"
+    merge:
+      cpus: 8
+      mem: "32G"
+      time: "4:00:00"
+    assembly:
+      cpus: 32
+      mem: "400G"
+      time: "24:00:00"
+    polish:
+      cpus: 32
+      mem: "128G"
+      time: "24:00:00"
+    purge:
+      cpus: 16
+      mem: "64G"
+      time: "12:00:00"
+    assess:
+      cpus: 16
+      mem: "64G"
+      time: "12:00:00"
