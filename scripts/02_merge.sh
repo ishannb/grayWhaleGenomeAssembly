@@ -15,7 +15,7 @@
 #SBATCH --account=euan
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
-#SBATCH --time=4:00:00
+#SBATCH --time=12:00:00
 #SBATCH --mail-type=FAIL,END
 #SBATCH --mail-user=ishannb@stanford.edu
 #SBATCH --chdir=/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly
