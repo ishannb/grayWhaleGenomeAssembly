@@ -28,8 +28,8 @@
 #SBATCH --chdir=/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CONFIG="${REPO_DIR}/config/config.yaml"
+REPO_DIR="/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly"
+CONFIG="${CONFIG:-${REPO_DIR}/config/config.yaml}"
 
 eval $(python3 "${REPO_DIR}/scripts/parse_config.py" "${CONFIG}")
 THREADS=${SLURM_CPUS_PER_TASK:-64}
@@ -46,6 +46,7 @@ echo "  Threads:      ${THREADS}"
 echo "  Output:       ${OUT_DIR}"
 echo "=============================================="
 
+source /home/users/ishannb/miniconda3/etc/profile.d/conda.sh
 conda activate gw_assembly
 mkdir -p "${OUT_DIR}"
 
@@ -63,6 +64,13 @@ if [[ ! -f "${INPUT}" ]]; then
 fi
 
 # ── Run Flye ───────────────────────────────────────────────────────────────────
+# If a previous Flye run left progress in the output dir, resume it
+RESUME_FLAG=""
+if [[ -f "${OUT_DIR}/flye.log" ]] && [[ -d "${OUT_DIR}/20-repeat" || -d "${OUT_DIR}/10-consensus" ]]; then
+    echo "Detected previous Flye progress — resuming."
+    RESUME_FLAG="--resume"
+fi
+
 echo "Starting Flye assembly at $(date)..."
 
 flye \
@@ -71,6 +79,7 @@ flye \
     --out-dir "${OUT_DIR}" \
     --threads "${THREADS}" \
     --iterations "${FLYE_ITERATIONS}" \
+    ${RESUME_FLAG} \
     ${FLYE_EXTRA_FLAGS}
 
 echo "Flye finished at $(date)."
