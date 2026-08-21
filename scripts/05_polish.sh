@@ -18,18 +18,24 @@
 #SBATCH --job-name=gw_05_polish
 #SBATCH --output=logs/05_polish_%j.out
 #SBATCH --error=logs/05_polish_%j.err
-#SBATCH --partition=euan
+#SBATCH --partition=gpu
 #SBATCH --account=euan
-#SBATCH --cpus-per-task=32
-#SBATCH --mem=128G
-#SBATCH --time=24:00:00
+#SBATCH --gres=gpu:1
+# A 12GB GPU (TITAN Xp) is not enough: medaka inference on a 2.4Gb draft OOMs
+# trying to allocate ~5.8GB on top of an already-fragmented heap. Require a
+# 32GB+ card. Note the euan partition's GPUs are all 12GB TITAN Xp, so this
+# job must run in the shared gpu partition.
+#SBATCH -C "GPU_MEM:32GB|GPU_MEM:48GB|GPU_MEM:80GB"
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=160G
+#SBATCH --time=48:00:00
 #SBATCH --mail-type=FAIL,END
 #SBATCH --mail-user=ishannb@stanford.edu
 #SBATCH --chdir=/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CONFIG="${REPO_DIR}/config/config.yaml"
+REPO_DIR="/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly"
+CONFIG="${CONFIG:-${REPO_DIR}/config/config.yaml}"
 
 eval $(python3 "${REPO_DIR}/scripts/parse_config.py" "${CONFIG}")
 THREADS=${SLURM_CPUS_PER_TASK:-32}
@@ -46,7 +52,16 @@ echo "  Rounds:  ${MEDAKA_ROUNDS}"
 echo "  Threads: ${THREADS}"
 echo "=============================================="
 
-conda activate gw_medaka
+# medaka_consensus is a wrapper that shells out to minimap2/samtools/bcftools/
+# bgzip/tabix. The py-medaka module ships medaka alone, so the helpers must be
+# loaded alongside it or the run dies during medaka's version check.
+ml biology py-medaka/2.1.0_py312 samtools/1.16.1 bcftools/1.16 htslib/1.16 minimap2/2.30
+
+# The previous OOM had only 575MB actually allocated but 5.8GB reserved-and-
+# unallocated by the caching allocator -- i.e. fragmentation, not true demand.
+# Expandable segments let the allocator grow blocks instead of stranding them.
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
 mkdir -p "${OUT_DIR}"
 
 # ── Guard ──────────────────────────────────────────────────────────────────────
@@ -93,6 +108,7 @@ for ROUND in $(seq 1 "${MEDAKA_ROUNDS}"); do
         -d "${CURRENT_DRAFT}" \
         -o "${ROUND_DIR}" \
         -m "${MEDAKA_MODEL}" \
+        -b 100 \
         -t "${THREADS}"
 
     CURRENT_DRAFT="${ROUND_OUT}"
