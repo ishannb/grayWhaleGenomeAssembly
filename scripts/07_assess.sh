@@ -28,8 +28,8 @@
 #SBATCH --chdir=/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CONFIG="${REPO_DIR}/config/config.yaml"
+REPO_DIR="/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly"
+CONFIG="${CONFIG:-${REPO_DIR}/config/config.yaml}"
 
 eval $(python3 "${REPO_DIR}/scripts/parse_config.py" "${CONFIG}")
 THREADS=${SLURM_CPUS_PER_TASK:-16}
@@ -44,6 +44,7 @@ echo "  BUSCO db: ${BUSCO_LINEAGE}"
 echo "  Output:   ${OUT_DIR}"
 echo "=============================================="
 
+source /home/users/ishannb/miniconda3/etc/profile.d/conda.sh
 conda activate gw_assembly
 mkdir -p "${OUT_DIR}"
 

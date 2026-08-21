@@ -120,16 +120,10 @@ fi
 echo "── Chain B: Assembly chain ───────────────────────"
 PREV_JOB=""
 
-if [[ "${FROM_STEP}" -le 2 ]]; then
-    # Merge does NOT depend on QC — starts immediately
-    MERGE_JOB=$(submit_job "02_merge.sh")
-    log_job "02_merge.sh" "${MERGE_JOB}" "none"
-    PREV_JOB="${MERGE_JOB}"
-fi
-
 if [[ "${FROM_STEP}" -le 3 ]]; then
-    FILTER_JOB=$(submit_job "03_filter.sh" "${PREV_JOB}")
-    log_job "03_filter.sh" "${FILTER_JOB}" "${PREV_JOB:-none}"
+    # Filter streams all FASTQ files directly — no merge step, no dependency
+    FILTER_JOB=$(submit_job "03_filter.sh")
+    log_job "03_filter.sh" "${FILTER_JOB}" "none"
     PREV_JOB="${FILTER_JOB}"
 fi
 

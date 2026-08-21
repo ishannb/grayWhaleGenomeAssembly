@@ -27,7 +27,7 @@
 set -euo pipefail
 
 REPO_DIR="/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly"
-CONFIG="${REPO_DIR}/config/config.yaml"
+CONFIG="${CONFIG:-${REPO_DIR}/config/config.yaml}"
 
 eval $(python3 "${REPO_DIR}/scripts/parse_config.py" "${CONFIG}")
 THREADS=${SLURM_CPUS_PER_TASK:-16}

@@ -9,7 +9,7 @@
 # =============================================================================
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_DIR="/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly"
 CONFIG="${REPO_DIR}/config/config.yaml"
 
 echo "=============================================="

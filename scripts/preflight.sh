@@ -10,7 +10,7 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CONFIG="${REPO_DIR}/config/config.yaml"
+CONFIG="${CONFIG:-${REPO_DIR}/config/config.yaml}"
 
 echo "=============================================="
 echo "  Pipeline Pre-flight Check"
