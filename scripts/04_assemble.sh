@@ -20,8 +20,14 @@
 #SBATCH --error=logs/04_assembly_%j.err
 #SBATCH --partition=bigmem
 #SBATCH --account=euan
-#SBATCH --cpus-per-task=32
-#SBATCH --mem=400G
+# Sized from measured blue whale usage: 312.7 GiB peak against a 400G request
+# on 120 Gb of filtered reads. Fin whale carries ~156 Gb, so 400G would have
+# been marginal. 600G leaves real headroom; bigmem allows up to 64 GB/core, so
+# 64 cores supports up to 4 TB. Cores raised 32 -> 64 to cut wall time: blue
+# whale needed 37.7 h at 32 cores and hit the partition's 24 h ceiling, which
+# is why --resume exists below.
+#SBATCH --cpus-per-task=64
+#SBATCH --mem=600G
 #SBATCH --time=24:00:00
 #SBATCH --mail-type=BEGIN,FAIL,END
 #SBATCH --mail-user=ishannb@stanford.edu

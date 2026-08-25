@@ -1,0 +1,140 @@
+# =============================================================================
+# fin_whale.yaml — Fin Whale (Balaenoptera physalus) Assembly Config
+# =============================================================================
+# Coverage is set from EXACT base counts summed from the Dorado
+# sequencing_summary.txt files (passes_filtering == TRUE only, since only
+# passing reads are written to basecalling/pass/). total_bases_gb is
+# authoritative and overrides the storage-size estimate.
+# =============================================================================
+
+# ── Sample Identity ───────────────────────────────────────────────────────────
+sample:
+  name: "Fin_Whale"
+  species: "Balaenoptera_physalus"
+
+  # Exact passing bases per library (all four summed):
+  #   Fin_whale_Lib1-2 (PBM05996): 73.8 Gb, 29,848,664 reads
+  #   Fin_whaleLib1-2  (PBK93609): 66.2 Gb, 26,976,359 reads
+  #   Fin_whale_lib2-1 (PBM05696): 76.7 Gb, 29,278,262 reads
+  #   Fin_whale_lib2-2 (PBK99450): 56.3 Gb, 21,721,507 reads
+  #   total (passing):            273.0 Gb, 107,824,792 reads
+  #   total (incl. failed):       302.6 Gb
+  total_bases_gb: 273.0
+
+  # Storage-based fields unused when total_bases_gb is set. Kept for reference:
+  # 463.5 GB of fastq_pass storage -> 0.59 Gb per GB, which is very different
+  # from the gray whale's 1.14. Do not reuse a compression factor across runs.
+  fastq_storage_gb: 0
+  fastq_compression_factor: 0.59
+
+# ── Input Data ────────────────────────────────────────────────────────────────
+# NOTE: 'Fin_whale_Lib1-2' and 'Fin_whaleLib1-2' differ ONLY by an underscore
+# and a capital L. They are separate libraries on separate flow cells. Verify
+# any edit here against `ls` output before running.
+input:
+  fastq_dirs:
+    # Fin_whale_Lib1-2 — PBM05996 (7,545 files)
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Fin_Whale_Seq_LR/Fin_whale_Lib1-2/basecalling/pass"
+    # Fin_whaleLib1-2 — PBK93609 (6,816 files)
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Fin_Whale_Seq_LR/Fin_whaleLib1-2/basecalling/pass"
+    # Fin_whale_lib2-1 — PBM05696 (7,407 files)
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Fin_Whale_Seq_LR/Fin_whale_lib2-1/basecalling/pass"
+    # Fin_whale_lib2-2 — PBK99450 (5,495 files)
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Fin_Whale_Seq_LR/Fin_whale_lib2-2/basecalling/pass"
+  bam_dirs:
+    # Same directories: Dorado wrote matching .bam alongside .fastq.gz, carrying
+    # 5mCG/5hmCG methylation calls. Not used by the assembly pipeline.
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Fin_Whale_Seq_LR/Fin_whale_Lib1-2/basecalling/pass"
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Fin_Whale_Seq_LR/Fin_whaleLib1-2/basecalling/pass"
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Fin_Whale_Seq_LR/Fin_whale_lib2-1/basecalling/pass"
+    - "/oak/stanford/groups/euan/projects/promethion_wet_lab/whale_data/Fin_Whale_Seq_LR/Fin_whale_lib2-2/basecalling/pass"
+
+# ── Output ────────────────────────────────────────────────────────────────────
+output:
+  base_dir: "/scratch/groups/euan/fin_whale_assembly"
+
+# ── Genome Parameters ─────────────────────────────────────────────────────────
+genome:
+  estimated_size: "2.6g"
+  estimated_size_gb: 2.6
+  species: "Balaenoptera_physalus"
+
+# ── Sequencing Metadata ───────────────────────────────────────────────────────
+sequencing:
+  flow_cell: "R10.4.1"
+  basecaller: "Dorado"          # basecalling_enabled=0; called post-hoc
+  calling_mode: "SUP"
+  basecall_model: "dna_r10.4.1_e8.2_400bps_sup@v5.2.0"
+
+# ── Read Filtering ────────────────────────────────────────────────────────────
+# 273.0 Gb / 2.6 Gb = ~105x raw. Above the 80x high-coverage threshold, so
+# calculate_params.py selects min_length 5000 and subsamples to 60x (156 Gb).
+# This is the same tier as the gray whale (read N50 12.8 kb after filtering)
+# rather than the blue whale, which fell just under 80x, got min_length 3000,
+# and assembled far more fragmented as a result.
+filtlong:
+  override: false
+  min_length: 5000
+  keep_percent: 100
+  target_bases: ""
+
+# ── Assembly (Flye) ───────────────────────────────────────────────────────────
+flye:
+  read_type: "nano-hq"
+  iterations: 1
+  extra_flags: "--keep-haplotypes"
+
+# ── Polishing (Medaka) ────────────────────────────────────────────────────────
+# Exact match to the Dorado basecall model above.
+medaka:
+  model: "r1041_e82_400bps_sup_v5.2.0"
+  rounds: 1
+
+# ── Haplotig Purging ──────────────────────────────────────────────────────────
+purge_dups:
+  low_cutoff: "auto"
+  mid_cutoff: "auto"
+  high_cutoff: "auto"
+
+# ── Assessment ────────────────────────────────────────────────────────────────
+busco:
+  lineage: "cetartiodactyla_odb10"
+  mode: "genome"
+
+# ── SLURM ─────────────────────────────────────────────────────────────────────
+# NOTE: these values are documentation only. The step scripts carry hardcoded
+# #SBATCH directives, which cannot read environment variables. To change real
+# resource requests, edit the script or override on the sbatch command line.
+slurm:
+  partition: "euan"
+  account: "euan"
+  email: "ishannb@stanford.edu"
+  resources:
+    qc:
+      cpus: 8
+      mem: "32G"
+      time: "4:00:00"
+    filter:
+      cpus: 8
+      mem: "32G"
+      time: "24:00:00"
+    merge:
+      cpus: 8
+      mem: "32G"
+      time: "12:00:00"
+    assembly:
+      cpus: 64
+      mem: "550G"
+      time: "24:00:00"
+    polish:
+      cpus: 16
+      mem: "160G"
+      time: "48:00:00"
+    purge:
+      cpus: 16
+      mem: "64G"
+      time: "12:00:00"
+    assess:
+      cpus: 16
+      mem: "64G"
+      time: "12:00:00"

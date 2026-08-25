@@ -20,9 +20,12 @@
 #SBATCH --error=logs/03_filter_%j.err
 #SBATCH --partition=euan
 #SBATCH --account=euan
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=32G
-#SBATCH --time=24:00:00
+# Blue whale's filter used exactly 32.0 GiB of a 32G request -- it completed,
+# but with zero headroom -- and took 10 h 21 m over 14,677 files. Fin whale has
+# 27,263 files and 1.3x the bases, so both limits are raised.
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=64G
+#SBATCH --time=48:00:00
 #SBATCH --mail-type=FAIL,END
 #SBATCH --mail-user=ishannb@stanford.edu
 #SBATCH --chdir=/oak/stanford/groups/euan/projects/ishannb/grayWhaleAssembly/grayWhaleGenomeAssembly
