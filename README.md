@@ -95,12 +95,32 @@ tail -f logs/04_assembly_<jobid>.out
 |------|--------|------|---------|
 | 0 | `00_setup.sh` | conda | Create environments and directories |
 | 1 | `01_qc.sh` | NanoPlot | Read quality assessment |
-| 2 | `02_merge.sh` | cat / seqkit | Merge both run directories |
-| 3 | `03_filter.sh` | Filtlong | Remove short/low-quality reads |
+| 2 | `02_merge.sh` | cat / seqkit | *(bypassed — step 3 streams inputs directly)* |
+| 3 | `03_filter.sh` | Filtlong | Concatenate + remove short/low-quality reads |
 | 4 | `04_assemble.sh` | Flye | De novo genome assembly |
-| 5 | `05_polish.sh` | Medaka | Consensus error correction |
+| 5 | `05_polish.sh` | Medaka | Consensus error correction (GPU) |
+| 5b | `05b_polish_resume.sh` | Medaka | Resume a partially-completed inference |
 | 6 | `06_purge.sh` | purge_dups | Remove haplotig duplicates |
 | 7 | `07_assess.sh` | BUSCO + QUAST | Assembly completeness and stats |
+
+### Step 5 notes
+
+Medaka is the only GPU-bound step, and it has two failure modes worth knowing
+about before you run it:
+
+- **It needs a 32 GB+ GPU.** A 12 GB card OOMs on a 2.4 Gb draft. Every GPU in
+  the `euan` partition is a 12 GB TITAN Xp, so this step must run in the shared
+  `gpu` partition with `-C GPU_MEM:32GB|...`.
+- **Its second "remainder" pass crashes on GPU** with
+  `CUDNN_STATUS_NOT_SUPPORTED` — a cuDNN GRU kernel failure on short-region
+  shapes, independent of memory and precision. Recover with
+  `05b_polish_resume.sh`, which reprocesses only the outstanding regions on CPU
+  and stitches the results together.
+
+Because Sherlock's `gpu` partition is heavily contended, step 5 can be offloaded
+to a local DGX H100 — see **[docs/dgx_medaka_offload.md](docs/dgx_medaka_offload.md)**
+for transfer sizes, GPU allocation, and the full procedure. Only step 5 is worth
+moving; Flye is CPU-only and belongs on `bigmem`.
 
 ---
 
